@@ -1,0 +1,29 @@
+--MULTIPLEXER 16 to 1
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+
+entity mux16 is
+     port(
+         cin : in STD_LOGIC_VECTOR(15 downto 0);
+         sel : in STD_LOGIC_VECTOR(3 downto 0);
+         cout : out STD_LOGIC
+         );
+end mux16;
+
+architecture mux of mux16 is
+begin
+   
+	
+    cout <= ((not cin(15)) AND (not cin(14))) AND (((not cin(13)) AND (not cin(12))) AND (not cin(11))) when (sel="0000") else
+            ((cin(15)) AND (not cin(14))) AND (((not cin(13)) AND (not cin(12))) AND (not cin(11))) when (sel="0001") else
+            ((not cin(15)) AND (not cin(14))) AND (((cin(13)) AND (not cin(12))) AND (not cin(11))) when (sel="0010") else
+            ((cin(15)) AND (not cin(14))) AND (((not cin(13)) AND (not cin(12))) AND (cin(11))) when (sel="0011") else
+            ((cin(15)) AND (cin(14))) AND (((not cin(13)) AND (not cin(12))) AND (not cin(11))) when (sel="0100") else
+            ((cin(15)) AND (cin(14))) AND (((cin(13)) AND (cin(12))) AND (cin(11))) when (sel="0101") else
+            ((not cin(15)) AND (not cin(14))) AND (((not cin(13)) AND (not cin(12))) AND (cin(11))) when (sel="0110") else
+            (((cin(15)) AND (cin(14))) AND (((not cin(13)) AND (cin(12))) AND (not cin(11)))) AND (not cin(2)) when (sel="0111") else
+				(((cin(15)) AND (cin(14))) AND (((not cin(13)) AND (cin(12))) AND (not cin(11)))) AND (cin(2)) when (sel="1000") else
+				((not cin(15)) AND (not cin(14))) AND (((cin(13)) AND (not cin(12))) AND (cin(11)));
+
+end mux;
