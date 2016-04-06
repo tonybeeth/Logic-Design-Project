@@ -1,0 +1,32 @@
+--MULTIPLEXER 2 to 1
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+
+entity mux8 is
+     port(
+         a, b : in STD_LOGIC_VECTOR(7 downto 0);
+         sel : in STD_LOGIC;
+         s		:out STD_LOGIC_VECTOR(7 downto 0)
+         );
+end mux8;
+
+architecture mux of mux8 is
+begin
+   
+	
+   process (sel)
+	begin
+		
+		if (sel = '0') then
+
+				s <= a;
+				
+		else 
+				s <= b;
+
+		end if;
+	end process;
+            
+
+end mux;
