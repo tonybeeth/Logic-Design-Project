@@ -1,0 +1,85 @@
+--INPUT DECODER
+--assuming instruction bits are indexed from the right most bit
+--and the execute and update bits are the right most bits
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+
+entity decod is
+     port(
+         cin : in STD_LOGIC_VECTOR(17 downto 0);
+			cout : out STD_LOGIC_VECTOR(21 downto 0)
+         );
+end decod;
+
+architecture d of decod is
+
+begin   
+	
+	process(cin)
+
+		begin
+			--first and second bits are the same
+			cout(0) <= cin(0);
+			cout(1) <= cin(1);
+			
+			if (cin(17 downto 13) = "00000") then	--ADD R2 TO R1
+				cout(11 downto 2) <= "1000000000";
+				cout(12) <= cin(5);
+				cout(13) <= '1';
+		
+			elsif (cin(17 downto 13) = "10000") then  --ADD IMM TO R1
+				cout(11 downto 2) <= "0100000000";
+				cout(12) <= cin(10);
+				cout(13) <= '0';
+				cout(21 downto 14) <= cin(9 downto 2); 
+		
+			elsif (cin(17 downto 13) = "00100") then --AND REG1 TO REG2
+				cout(11 downto 2) <= "0010000000";
+				cout(12) <= cin(5);
+				cout(13) <= '1';
+		
+			elsif (cin(17 downto 13) = "10001")  then--COPY REG1 TO REG2
+				cout(11 downto 2) <= "0001000000";
+				cout(12) <= cin(5);
+				cout(13) <= '1';
+				
+			elsif (cin(17 downto 13) = "11000") then --COPY IMM TO REG
+				cout(11 downto 2) <= "0000100000";
+				cout(12) <= cin(10);
+				cout(13) <= '0';
+				cout(21 downto 14) <= cin(9 downto 2);
+		
+			elsif (cin(17 downto 13) = "11111") then --INCREMENT REG BY 1
+				cout(11 downto 2) <= "0000010000";
+				cout(12) <= cin(2);
+				cout(13) <= '0';
+		
+			elsif (cin(17 downto 13) = "00001") then  --OR REG1 TO REG2
+				cout(11 downto 2) <= "0000001000";
+				cout(12) <= cin(5);
+				cout(13) <= '1';
+			
+			elsif (cin(17 downto 13) = "11010" and cin(5) = '0') then --SHIFT LEFT REG BY 1
+				cout(11 downto 2) <= "0000000100";
+				cout(12) <= cin(2);
+				cout(13) <= '0';
+		
+			elsif (cin(17 downto 13) = "11010" and cin(5) = '1') then--SHIFT RIGHT REG BY 1
+				cout(11 downto 2) <= "0000000010";
+				cout(12) <= cin(2);
+				cout(13) <= '0';
+		
+			elsif (cin(17 downto 13) = "00101") then--SUBTRACT REG2 FROM REG1
+				cout(11 downto 2) <= "0000000001";
+				cout(12) <= cin(5);
+				cout(13) <= '1';
+			
+			else
+				cout <= "0000000000000000000000";
+	
+		
+	end if;
+end process;
+end d;
