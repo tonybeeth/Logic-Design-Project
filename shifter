@@ -1,0 +1,37 @@
+--SHIFTER8 
+
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity shifter8 is
+
+	port 
+	(
+		cin      : in std_logic_vector (7 downto 0);
+		direction : in std_logic;
+		cout		: out std_logic_vector (7 downto 0)
+	);
+
+end entity;
+
+architecture s8 of shifter8 is
+
+begin
+	
+	process (direction)
+	begin
+		--direction = 0 means shift left, 1 means shift right
+		if (direction = '0') then
+		
+				cout(7 downto 1) <= cin(6 downto 0);
+				cout(0) <= '0';
+		
+		else
+			cout(6 downto 0) <= cin(7 downto 1);
+			cout(7) <= '0';
+
+		end if;
+	end process;
+
+	
+end s8;
