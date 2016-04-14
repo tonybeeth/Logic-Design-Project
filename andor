@@ -1,0 +1,24 @@
+--ANDOR
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+
+entity andor is
+     port(
+         cin1,cin2 : in STD_LOGIC_VECTOR(7 downto 0);
+			sig : in std_logic; --0 means OR, 1 means AND
+			cout : out STD_LOGIC_VECTOR(7 downto 0)
+         );
+end andor;
+
+architecture a of andor is
+begin
+	cout(0) <= ((cin1(0) and (not sig)) or (cin2(0) and (not sig))) or (cin1(0) and cin2(0));
+	cout(1) <= ((cin1(1) and (not sig)) or (cin2(1) and (not sig))) or (cin1(1) and cin2(1));
+	cout(2) <= ((cin1(2) and (not sig)) or (cin2(2) and (not sig))) or (cin1(2) and cin2(2));
+	cout(3) <= ((cin1(3) and (not sig)) or (cin2(3) and (not sig))) or (cin1(3) and cin2(3));
+	cout(4) <= ((cin1(4) and (not sig)) or (cin2(4) and (not sig))) or (cin1(4) and cin2(4));
+	cout(5) <= ((cin1(5) and (not sig)) or (cin2(5) and (not sig))) or (cin1(5) and cin2(5));
+	cout(6) <= ((cin1(6) and (not sig)) or (cin2(6) and (not sig))) or (cin1(6) and cin2(6));
+	cout(7) <= ((cin1(7) and (not sig)) or (cin2(7) and (not sig))) or (cin1(7) and cin2(7));
+end a;
+
