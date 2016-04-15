@@ -54,7 +54,7 @@ begin
 				cout(9 downto 0) <= "0000010000";
 				cout(10) <= cin(0);
 				cout(11) <= '0';
-				cout(19 downto 12) <= "10000000";
+				cout(19 downto 12) <= "00000001";
 		
 			elsif (cin(15 downto 11) = "00001") then  --OR REG1 TO REG2
 				cout(9 downto 0) <= "0000001000";
