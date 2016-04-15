@@ -1,0 +1,480 @@
+-- Main Logic
+
+--INPUT DECODER
+--assuming instruction bits are indexed from the right most bit
+--and the execute and update bits are the right most bits
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+
+entity decod is
+     port(
+         cin : in STD_LOGIC_VECTOR(15 downto 0);
+			cout : out STD_LOGIC_VECTOR(19 downto 0)
+         );
+end decod;
+
+architecture d of decod is
+
+begin   
+	
+	process(cin)
+
+		begin
+		
+			if (cin(15 downto 11) = "00000") then	--ADD R2 TO R1
+				cout(9 downto 0) <= "1000000000";
+				cout(10) <= cin(3);
+				cout(11) <= '1';
+		
+			elsif (cin(15 downto 11) = "10000") then  --ADD IMM TO R1
+				cout(9 downto 0) <= "0100000000";
+				cout(10) <= cin(8);
+				cout(11) <= '0';
+				cout(19 downto 12) <= cin(7 downto 0); 
+		
+			elsif (cin(15 downto 11) = "00100") then --AND REG1 TO REG2
+				cout(9 downto 0) <= "0010000000";
+				cout(10) <= cin(3);
+				cout(11) <= '1';
+		
+			elsif (cin(15 downto 11) = "10001")  then--COPY REG1 TO REG2
+				cout(9 downto 0) <= "0001000000";
+				cout(10) <= cin(3);
+				cout(11) <= '1';
+				
+			elsif (cin(15 downto 11) = "11000") then --COPY IMM TO REG
+				cout(9 downto 0) <= "0000100000";
+				cout(10) <= cin(8);
+				cout(11) <= '0';
+				cout(19 downto 12) <= cin(7 downto 0);
+		
+			elsif (cin(15 downto 11) = "11111") then --INCREMENT REG BY 1
+				cout(9 downto 0) <= "0000010000";
+				cout(10) <= cin(0);
+				cout(11) <= '0';
+				cout(19 downto 12) <= "10000000";
+		
+			elsif (cin(15 downto 11) = "00001") then  --OR REG1 TO REG2
+				cout(9 downto 0) <= "0000001000";
+				cout(10) <= cin(3);
+				cout(11) <= '1';
+			
+			elsif (cin(15 downto 11) = "11010" and cin(3) = '0') then --SHIFT LEFT REG BY 1
+				cout(9 downto 0) <= "0000000100";
+				cout(10) <= cin(0);
+				cout(11) <= '0';
+		
+			elsif (cin(15 downto 11) = "11010" and cin(3) = '1') then--SHIFT RIGHT REG BY 1
+				cout(9 downto 0) <= "0000000010";
+				cout(10) <= cin(0);
+				cout(11) <= '0';
+		
+			elsif (cin(15 downto 11) = "00101") then--SUBTRACT REG2 FROM REG1
+				cout(9 downto 0) <= "0000000001";
+				cout(10) <= cin(3);
+				cout(11) <= '1';
+			
+			else
+				cout <= "00000000000000000000";
+	
+		
+	end if;
+end process;
+end d;
+
+
+--SHIFTER8 
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity shifter8 is
+
+	port 
+	(
+		cin      : in std_logic_vector (7 downto 0);
+		direction : in std_logic;
+		cout		: out std_logic_vector (7 downto 0)
+	);
+
+end entity;
+
+architecture s8 of shifter8 is
+--signal 
+begin
+	
+	process (direction)
+	begin
+		--direction = 0 means shift left, 1 means shift right
+		if (direction = '0') then
+		
+				cout(7 downto 1) <= cin(6 downto 0);
+				cout(0) <= '0';
+		
+		else
+			cout(6 downto 0) <= cin(7 downto 1);
+			cout(7) <= '0';
+
+		end if;
+	end process;
+
+end s8;
+
+
+--REGISTER8
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity register8 is
+
+	port 
+	(
+		enable	: in std_logic;
+		rin      : in std_logic_vector (7 downto 0);
+		rout		: out std_logic_vector (7 downto 0)
+	);
+
+end entity;
+
+architecture r8 of register8 is
+	
+	signal rt: std_logic_vector (7 downto 0);
+
+begin
+
+	process (enable)
+	begin
+		
+		if (enable = '0') then
+
+				rout <= rin;
+
+		end if;
+	end process;
+
+	
+end r8;
+
+
+
+-- Unsigned Adder
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity adder8 is
+
+	port 
+	(
+		a	   : in std_logic_vector (7 downto 0);
+		b	   : in std_logic_vector (7 downto 0);
+		cin	: in std_logic;
+		s		: out std_logic_vector (7 downto 0)
+		--cout	: out std_logic
+		
+	);
+
+end entity;
+
+architecture s of adder8 is
+signal c1,c2,c3,c4,c5,c6,c7: std_logic;
+begin
+
+	s(0) <= a(0) xor b(0) xor cin;
+	c1 <= (a(0) and b(0)) or (a(0) and cin) or (b(0) and cin);
+	
+	s(1) <= a(1) xor b(1) xor c1;
+	c2 <= (a(1) and b(1)) or (a(1) and c1) or (b(1) and c1);
+	
+	s(2) <= a(2) xor b(2) xor c2;
+	c3 <= (a(2) and b(2)) or (a(2) and c2) or (b(2) and c2);
+	
+	s(3) <= a(3) xor b(3) xor c3;
+	c4 <= (a(3) and b(3)) or (a(3) and c3) or (b(3) and c3);
+	
+	s(4) <= a(4) xor b(4) xor c4;
+	c5 <= (a(4) and b(4)) or (a(4) and c4) or (b(4) and c4);
+	
+	s(5) <= a(5) xor b(5) xor c5;
+	c6 <= (a(5) and b(5)) or (a(5) and c5) or (b(5) and c5);
+	
+	s(6) <= a(6) xor b(6) xor c6;
+	c7 <= (a(6) and b(6)) or (a(6) and c6) or (b(6) and c6);
+	
+	s(7) <= a(7) xor b(7) xor c7;
+	--cout <= (a(7) and b(7)) or (a(7) and c7) or (b(7) and c7);
+	
+end s;
+
+
+--MULTIPLEXER 2 to 1
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+
+entity mux8 is
+     port(
+         a, b : in STD_LOGIC_VECTOR(7 downto 0);
+         sel : in STD_LOGIC;
+         s		:out STD_LOGIC_VECTOR(7 downto 0)
+         );
+end mux8;
+
+architecture mux of mux8 is
+begin
+   
+	
+   process (sel)
+	begin
+		
+		if (sel = '0') then
+
+				s <= a;
+				
+		else 
+				s <= b;
+
+		end if;
+	end process;
+            
+
+end mux;
+
+
+--Multiplexer 3 to 2
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+
+entity mux3 is
+     port(
+         a, b, c : in STD_LOGIC_VECTOR(7 downto 0);
+         sel1,sel2 : in STD_LOGIC;
+         s1,s2		:out STD_LOGIC_VECTOR(7 downto 0)
+         );
+end mux3;
+
+architecture mux3to2 of mux3 is
+signal other : std_logic_vector(7 downto 0);
+begin   
+	
+   process (sel1)
+	begin
+		
+		if (sel1 = '0') then
+				s1 <= a;
+				other <= b;
+				
+		else 
+				s1 <= b;
+				other <= a;
+
+		end if;
+	end process;
+	
+	process (sel2)
+		begin	
+			
+			if (sel2 = '1') then
+				s2 <= other;
+			else
+				s2 <= c;
+			
+			end if;
+	end process;
+
+end mux3to2;
+
+--ANDOR
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+
+entity andor is
+     port(
+         cin1,cin2 : in STD_LOGIC_VECTOR(7 downto 0);
+			sig : in std_logic; --0 means OR, 1 means AND
+			cout : out STD_LOGIC_VECTOR(7 downto 0)
+         );
+end andor;
+
+architecture a of andor is
+begin
+	cout(0) <= ((cin1(0) and (not sig)) or (cin2(0) and (not sig))) or (cin1(0) and cin2(0));
+	cout(1) <= ((cin1(1) and (not sig)) or (cin2(1) and (not sig))) or (cin1(1) and cin2(1));
+	cout(2) <= ((cin1(2) and (not sig)) or (cin2(2) and (not sig))) or (cin1(2) and cin2(2));
+	cout(3) <= ((cin1(3) and (not sig)) or (cin2(3) and (not sig))) or (cin1(3) and cin2(3));
+	cout(4) <= ((cin1(4) and (not sig)) or (cin2(4) and (not sig))) or (cin1(4) and cin2(4));
+	cout(5) <= ((cin1(5) and (not sig)) or (cin2(5) and (not sig))) or (cin1(5) and cin2(5));
+	cout(6) <= ((cin1(6) and (not sig)) or (cin2(6) and (not sig))) or (cin1(6) and cin2(6));
+	cout(7) <= ((cin1(7) and (not sig)) or (cin2(7) and (not sig))) or (cin1(7) and cin2(7));
+end a;
+
+--FINAL RESULT MUX
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity resultmux is
+
+	port
+	(
+		ADD1R,ADD2R,SUBR,ANDR,ORR,SHLR,SHRR,INCR,MOV1R,MOV2R : in std_LOGIC_VECTOR(7 downto 0);
+		sel : in std_LOGIC_VECTOR(9 downto 0);
+		cout : out std_LOGIC_VECTOR(7 downto 0)
+	);
+end entity;
+
+architecture res of resultmux is
+begin
+	process (sel)
+		begin
+			if(sel(9)='1') then
+				cout <= ADD1R;
+			elsif (sel(8)='1') then
+				cout <= ADD2R;
+			elsif (sel(7)='1') then
+				cout <= ANDR;
+			elsif (sel(6)='1') then
+				cout <= MOV1R; --MOV1
+			elsif (sel(5)='1') then
+				cout <= MOV2R; --MOV2
+			elsif (sel(4)='1') then
+				cout <= INCR;
+			elsif (sel(3)='1') then
+				cout <= ORR;
+			elsif (sel(2)='1') then
+				cout <= SHLR;
+			elsif (sel(1)='1') then
+				cout <= SHRR;
+			else
+				cout <= SUBR;
+			end if;
+	end process;
+	
+end res;
+
+--MAIN LOGIC
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity LogicProj is
+
+	port 
+	(
+		input	   : in STD_LOGIC_VECTOR (15 downto 0);
+		UPD,EXE : in STD_LOGIC;
+		output : out std_LOGIC_VECTOR (7 downto 0)
+	);
+
+end entity;
+
+architecture structure of LogicProj is	
+	signal decInst : std_LOGIC_VECTOR(19 downto 0);	
+	signal AL,BL,TEMP,SHL,SHR,R1,R2,ADD1R,ADD2R,ANDR,MOV1R,MOV2R,INCR,ORR,SHLR,SHRR,SUBR,RESULT 
+	: std_LOGIC_VECTOR(7 downto 0);
+	
+
+	--Decoder component
+	component decod is
+		port (
+				cin : in STD_LOGIC_VECTOR(15 downto 0);
+				cout: out STD_LOGIC_VECTOR(19 downto 0)
+		);		
+	end component;
+	
+	--Adder component
+	component adder8 is
+		port 
+		(
+			a	   : in std_logic_vector (7 downto 0);
+			b	   : in std_logic_vector (7 downto 0);
+			cin	: in std_logic;
+			s		: out std_logic_vector (7 downto 0)
+			--cout	: out std_logic
+		);
+	end component;
+	
+	--Shifter Component
+	component shifter8 is
+		port 
+		(
+			cin      : in std_logic_vector (7 downto 0);
+			direction : in std_logic;
+			cout		: out std_logic_vector (7 downto 0)
+		);
+	end component;
+	
+	--Register Component
+	component register8 is
+		port 
+		(
+			enable	: in std_logic;
+			rin      : in std_logic_vector (7 downto 0);
+			rout		: out std_logic_vector (7 downto 0)
+		);
+	end component;
+	
+	--mux 2 to 1 component
+	component mux8 is
+		port(
+			a, b : in STD_LOGIC_VECTOR(7 downto 0);
+         sel : in STD_LOGIC;
+         s		:out STD_LOGIC_VECTOR(7 downto 0)
+      );
+	end component;	
+	
+	--mux 3 to 2 component
+	component mux3 is
+		port(
+         a, b, c : in STD_LOGIC_VECTOR(7 downto 0);
+         sel1,sel2 : in STD_LOGIC;
+         s1,s2		:out STD_LOGIC_VECTOR(7 downto 0)
+      );
+	end component;
+	
+	--andor component
+	component andor is
+     port(
+         cin1,cin2 : in STD_LOGIC_VECTOR(7 downto 0);
+			sig : in std_logic; --0 means OR, 1 means AND
+			cout : out STD_LOGIC_VECTOR(7 downto 0)
+         );
+	end component;
+	
+	--results mux component
+	component resultmux is
+		port
+		(
+			ADD1R,ADD2R,SUBR,ANDR,ORR,SHLR,SHRR,INCR,MOV1R,MOV2R : in std_LOGIC_VECTOR(7 downto 0);
+			sel : in std_LOGIC_VECTOR(9 downto 0);
+			cout : out std_LOGIC_VECTOR(7 downto 0)
+		);
+	end component;
+
+begin
+	--instruction from decoder
+	dec : decod port map(input, decInst);
+	--Update registers; needs look over
+	updAL : register8 port map((not UPD) and (not decInst(10)), TEMP, AL);				
+	updBL : register8 port map ((not UPD) and decInst(10), TEMP, BL);	
+	updTEMP : register8 port map((not EXE), RESULT, TEMP);
+	
+	--select reg1 and reg2
+	
+	selReg : mux3 port map(AL, BL, decInst(19 downto 12), decInst(10), decInst(11), R1, R2);
+	
+	adder1 : adder8 port map(R1, R2, '0', ADD1R);
+	adder2 : adder8 port map(R1, R2, '0', ADD2R);
+	shiftL : shifter8 port map(R1, decInst(2) and (not decInst(1)), SHLR);
+	shiftR : shifter8 port map(R1, (not decInst(2)) and decInst(1), SHRR);
+	subtract : adder8 port map(R1, not R2, '1', SUBR);
+	incr1 : adder8 port map (R1, R2, '0', INCR);
+	and1 : andor port map(R1,R2,'1',ANDR);
+	or1 : andor port map(R1,R2,'0',ORR);
+	mov1 : MOV1R <= R2;
+	mov2 : MOV2R <= R2;
+	
+	finalresult : resultmux port map(ADD1R,ADD2R,SUBR,ANDR,ORR,SHLR,SHRR,INCR,MOV1R,MOV2R, decInst(9 downto 0),RESULT);
+	
+	
+end;
