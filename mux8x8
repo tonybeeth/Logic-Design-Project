@@ -1,0 +1,35 @@
+entity mux8x8 is
+     port(
+         a, b, c, d, e, f, g, h : in STD_LOGIC_VECTOR(7 downto 0);
+         sel: 	in STD_LOGIC_VECTOR (2 downto 0);
+         s:		out STD_LOGIC_VECTOR(7 downto 0)
+         );
+end mux8x8;
+
+architecture mx8 of mux8x8 is
+begin
+   
+	
+   process (sel)
+	begin
+		
+		if (sel = "000") then 
+			s <= a;
+		elsif (sel = "001") then 
+			s <= b;
+		elsif (sel = "010") then 
+			s <= c;
+		elsif (sel = "011") then 
+			s <= d;
+		elsif (sel = "100") then 
+			s <= e;
+		elsif (sel = "101") then 
+			s <= f;
+		elsif (sel = "110") then 
+			s <= f;
+		elsif (sel = "111") then 
+			s <= f;
+		
+		end if;
+	end process;
+ end mx8;
