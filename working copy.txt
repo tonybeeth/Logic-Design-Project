@@ -1,0 +1,405 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+
+
+
+
+
+
+
+entity mux8x8 is
+     port(
+         a, b, c, d, e, f, g, h : in STD_LOGIC_VECTOR(7 downto 0);
+         sel: 	in STD_LOGIC_VECTOR (2 downto 0);
+         s:		out STD_LOGIC_VECTOR(7 downto 0)
+         );
+end mux8x8;
+
+architecture mx8 of mux8x8 is
+begin
+ 	
+   process (sel)
+	begin
+		
+		if (sel = "000") then 
+			s <= a;
+		elsif (sel = "001") then 
+			s <= b;
+		elsif (sel = "010") then 
+			s <= c;
+		elsif (sel = "011") then 
+			s <= d;
+		elsif (sel = "100") then 
+			s <= e;
+		elsif (sel = "101") then 
+			s <= f;
+		elsif (sel = "110") then 
+			s <= f;
+		elsif (sel = "111") then 
+			s <= f;
+		
+		end if;
+	end process;
+ end mx8;
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+
+entity dcode is
+     port(
+         i : in STD_LOGIC_VECTOR(15 downto 0);
+			up: in std_logic;
+			ex: in std_logic;
+			immdat: out STD_LOGIC_VECTOR(7 downto 0);
+			sel7: out std_logic_vector(2 downto 0);
+			sel6: out std_logic;
+			sel5: out std_logic;
+			sel4: out std_logic;
+			sel3: out std_logic;
+			sel2: out std_logic;
+			sel1: out std_logic;
+			updbl: out std_logic;
+			updal: out std_logic;
+			exe: out std_logic
+         );
+end dcode;
+
+architecture d of dcode is
+
+begin   
+	
+	process(i)
+
+		begin
+		
+			--ADD BL to AL
+			if (i(15 downto 11) = "00000") and (i(2 downto 0) = "000") then	
+			immdat <= "00000000";
+			sel7 <= "001"; --mux 7 passes output from adder to TEMP
+			sel6 <= '0'; --sel6 passes output from BL to adder
+			sel5 <= '0'; --sel5 passes output from AL to adder
+			sel4 <= '0';
+			sel3 <= '0';--sel3 or sel4 only go to 1 for subtraction 
+			sel2 <= '0';
+			sel1 <= '0';-- muxes 1 and 2 will pass data from TEMP rather than IMM back to AL or BL
+			updbl <= '0';--BL does not update during this operation
+			updal <= not up;--AL will update when update button is pressed
+			exe <= not ex;--TEMP will update when execute is pressed
+			
+			--ADD AL to BL
+			elsif (i(15 downto 11) = "00000") and (i(2 downto 0) = "011") then
+			immdat <= "00000000";
+			sel7 <= "001"; --mux 7 passes output from adder to TEMP
+			sel6 <= '0'; --sel6 passes output from BL to adder
+			sel5 <= '0'; --sel5 passes output from AL to adder
+			sel4 <= '0';
+			sel3 <= '0';--sel3 or sel4 only go to 1 for subtraction 
+			sel2 <= '0';
+			sel1 <= '0';-- muxes 1 and 2 will pass data from TEMP rather than IMM back to AL or BL
+			updbl <= not up;--BL will update when update button is pressed
+			updal <= '0';-- AL does not update during this operation
+			exe <= not ex;--TEMP will update when execute is pressed
+		
+			--ADD immdata to AL
+			elsif (i(15 downto 11) = "10000") and (i(10 downto 8) = "000") then	 
+			immdat <= i(7 downto 0);
+			sel7 <= "001"; --mux 7 passes adder to TEMP
+			sel6 <= '1'; --sel6 passes IMMDATA to adder
+			sel5 <= '0'; --sel5 passes AL to adder
+			sel4 <= '0';
+			sel3 <= '0';--sel3 or sel4 only go to 1 for subtraction 
+			sel2 <= '0';
+			sel1 <= '0';-- muxes 1 and 2 will pass data from TEMP rather than IMM back to AL or BL
+			updbl <= '0';--BL does not update during this operation
+			updal <= not up;--AL will update when update button is pressed
+			exe <= not ex;--TEMP will update when execute is pressed
+			
+			--ADD immdata to BL
+			elsif (i(15 downto 11) = "10000") and (i(10 downto 8) = "011") then	 
+			immdat <= i(7 downto 0);
+			sel7 <= "001"; --mux 7 passes output from adder to TEMP
+			sel6 <= '0'; --sel6 passes BL to adder
+			sel5 <= '1'; --sel5 passes IMMDATA to adder
+			sel4 <= '0';
+			sel3 <= '0';--sel3 or sel4 only go to 1 for subtraction 
+			sel2 <= '0';
+			sel1 <= '0';-- muxes 1 and 2 will pass data from TEMP rather than IMM back to AL or BL
+			updbl <= not up;--BL will update when update button is pressed
+			updal <= '0';-- AL does not update during this operation
+			exe <= not ex;--TEMP will update when execute is pressed
+			
+			--copy BL to AL
+			elsif (i(15 downto 11) = "10001") and (i(2 downto 0) = "000") then
+			immdat <= "00000000";
+			sel7 <= "011"; --mux 7 passes output from BL to TEMP
+			sel6 <= '0'; --sel6 passes BL to adder (moot)
+			sel5 <= '0'; --sel5 passes from AL to adder (moot)
+			sel4 <= '0';
+			sel3 <= '0';--sel3 or sel4 only go to 1 for subtraction 
+			sel2 <= '0';
+			sel1 <= '0';-- muxes 1 and 2 will pass data from TEMP rather than IMM back to AL or BL
+			updbl <= '0';--BL does not update during this operation
+			updal <= not up;--AL will update when update button is pressed
+			exe <= not ex;--TEMP will update when execute is pressed
+			
+			--copy AL to BL
+			elsif (i(15 downto 11) = "10001") and (i(2 downto 0) = "011") then	
+			immdat <= "00000000";
+			sel7 <= "010"; --mux 7 passes output from AL to TEMP
+			sel6 <= '0'; --sel6 passes BL to adder (moot)
+			sel5 <= '0'; --sel5 passes from AL to adder (moot)
+			sel4 <= '0';
+			sel3 <= '0';--sel3 or sel4 only go to 1 for subtraction 
+			sel2 <= '0';
+			sel1 <= '0';-- muxes 1 and 2 will pass data from TEMP rather than IMM back to AL or BL
+			updbl <= not up;--BL will update when update button is pressed
+			updal <= '0';-- AL does not update during this operation
+			exe <= not ex;--TEMP will update when execute is pressed
+			
+			--copy IMM to AL
+			elsif (i(15 downto 11) = "11000") and (i(2 downto 0) = "000") then
+			immdat <= i(7 downto 0);
+			sel7 <= "010"; --mux 7 passes AL to TEMP (if exe)
+			sel6 <= '1'; --sel6 passes BL to adder (moot)
+			sel5 <= '0'; --sel5 passes AL to adder (moot)
+			sel4 <= '0';
+			sel3 <= '0';--sel3 or sel4 only go to 1 for subtraction (moot)
+			sel2 <= '0';
+			sel1 <= '1';-- mux 1 passes IMMDATA to AL
+			updbl <= '0';--BL does not update during this operation
+			updal <= not up;--AL will update when update button is pressed
+			exe <= not ex;--TEMP will update when execute is pressed
+			
+			--copy IMM to BL
+			immdat <= i(7 downto 0);
+			sel7 <= "011"; --mux 7 passes BL to TEMP (if exe)
+			sel6 <= '1'; --sel6 passes BL to adder (moot)
+			sel5 <= '0'; --sel5 passes AL to adder (moot)
+			sel4 <= '0';
+			sel3 <= '0';--sel3 or sel4 only go to 1 for subtraction (moot)
+			sel2 <= '1';
+			sel1 <= '0';-- mux 1 passes IMMDATA to AL
+			updbl <= not up;--BL will update when update button is pressed
+			updal <= '0';-- AL does not update during this operation
+			exe <= not ex;--TEMP will update when execute is pressed
+			
+	end if;
+end process;
+end d;
+
+
+
+
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+
+
+
+
+entity adder8 is
+
+	port 
+	(
+		a	   : in std_logic_vector (7 downto 0);
+		b	   : in std_logic_vector (7 downto 0);
+		cin	: in std_logic;
+		s		: out std_logic_vector (7 downto 0);
+		cout	: out std_logic
+		
+	);
+
+end entity;
+
+architecture s of adder8 is
+signal c1,c2,c3,c4,c5,c6,c7: std_logic;
+begin
+
+	s(0) <= a(0) xor b(0) xor cin;
+	c1 <= (a(0) and b(0)) or (a(0) and cin) or (b(0) and cin);
+	
+	s(1) <= a(1) xor b(1) xor c1;
+	c2 <= (a(1) and b(1)) or (a(1) and c1) or (b(1) and c1);
+	
+	s(2) <= a(2) xor b(2) xor c2;
+	c3 <= (a(2) and b(2)) or (a(2) and c2) or (b(2) and c2);
+	
+	s(3) <= a(3) xor b(3) xor c3;
+	c4 <= (a(3) and b(3)) or (a(3) and c3) or (b(3) and c3);
+	
+	s(4) <= a(4) xor b(4) xor c4;
+	c5 <= (a(4) and b(4)) or (a(4) and c4) or (b(4) and c4);
+	
+	s(5) <= a(5) xor b(5) xor c5;
+	c6 <= (a(5) and b(5)) or (a(5) and c5) or (b(5) and c5);
+	
+	s(6) <= a(6) xor b(6) xor c6;
+	c7 <= (a(6) and b(6)) or (a(6) and c6) or (b(6) and c6);
+	
+	s(7) <= a(7) xor b(7) xor c7;
+	cout <= (a(7) and b(7)) or (a(7) and c7) or (b(7) and c7);
+	
+end s;
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+
+
+entity register8 is
+
+	port 
+	(
+		enable	: in std_logic;
+		rin      : in std_logic_vector (7 downto 0);
+		rout		: out std_logic_vector (7 downto 0);
+		routnot	: out std_logic_vector (7 downto 0)
+	);
+
+end entity;
+
+architecture r8 of register8 is
+	
+	signal rt: std_logic_vector (7 downto 0);
+
+begin
+
+	process (enable)
+	begin
+		
+		if (enable = '1') then
+
+				rout <= rin;
+				routnot <= not rin;
+
+		end if;
+	end process;
+
+	
+end r8;
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+
+
+entity mux8 is
+     port(
+         a, b : in STD_LOGIC_VECTOR(7 downto 0);
+         sel : in STD_LOGIC;
+         s		:out STD_LOGIC_VECTOR(7 downto 0)
+			);
+end mux8;
+
+architecture mux of mux8 is
+begin
+   
+	
+   process (sel)
+	begin
+		
+		if (sel = '0') then
+
+				s <= a;
+												
+		else 
+				s <= b;
+				
+		end if;
+	end process;
+            
+
+end mux;
+
+
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+
+
+entity box4 is
+     port(
+         bin : in STD_LOGIC_VECTOR(15 downto 0);
+			update: in std_logic;
+			execute: in std_logic;
+			bout : out STD_LOGIC_VECTOR(7 downto 0);
+			diag_a: out std_logic_vector(7 downto 0);
+			diag_b: out std_logic_vector(7 downto 0)
+         );
+end box4;
+
+
+architecture bx of box4 is
+
+component dcode 
+		port (i : in STD_LOGIC_VECTOR(15 downto 0);
+				up: in std_logic;
+				ex: in std_logic;
+				immdat: out STD_LOGIC_VECTOR(7 downto 0);
+			sel7: out std_logic_vector(2 downto 0);
+			sel6: out std_logic;
+			sel5: out std_logic;
+			sel4: out std_logic;
+			sel3: out std_logic;
+			sel2: out std_logic;
+			sel1: out std_logic;
+			updbl: out std_logic;
+			updal: out std_logic;
+			exe: out std_logic
+			);
+end component;
+
+component adder8
+		port (a	   : in std_logic_vector (7 downto 0);
+				b	   : in std_logic_vector (7 downto 0);
+				cin	: in std_logic;
+				s		: out std_logic_vector (7 downto 0);
+				cout	: out std_logic);
+end component;
+
+component register8
+		port (enable	: in std_logic;
+				rin      : in std_logic_vector (7 downto 0);
+				rout		: out std_logic_vector (7 downto 0);
+				routnot	: out std_logic_vector (7 downto 0));
+end component;
+
+component mux8 
+		port ( a, b : in STD_LOGIC_VECTOR(7 downto 0);
+				 sel : in STD_LOGIC;
+				 s		:out STD_LOGIC_VECTOR(7 downto 0));
+				
+end component;
+
+component mux8x8
+		port ( a, b, c, d, e, f, g, h: in STD_LOGIC_VECTOR(7 downto 0);
+				 sel: in STD_LOGIC_VECTOR(2 downto 0);
+				 s: out STD_LOGIC_VECTOR (7 downto 0));
+end component;
+
+signal ca,cb,cd,ce,cf,cg,ch,ci,cj,ck,cl,cm,cn,co,cp,cq,cr,cs,ct,cu: std_logic_vector(7 downto 0);
+signal exe, updal, updbl, sel1, sel2, sel3, sel4, sel5, sel6, sub, spare: std_logic;
+signal sel7: std_logic_vector(2 downto 0);
+begin
+		sub <= (sel3 or sel4);
+		
+		decoder: dcode port map (bin, update, execute, ca, sel7, sel6, sel5, sel4, sel3, sel2, sel1, updbl, updal, exe);
+		mux1: mux8 port map (cu, ca, sel1, cb);
+		mux2: mux8 port map (cu, ca, sel2, cd);
+		AL:	register8 port map (updal, cb, ce,cf);
+		BL: 	register8 port map (updbl, cd, cg,ch);
+		mux3:	mux8 port map (ce, cf, sel3, ci);
+		mux4:	mux8 port map (cg, ch, sel4, cj);
+		mux5: mux8 port map (ci, ca, sel5, ck);
+		mux6: mux8 port map (cj, ca, sel6, cl);
+		add1: adder8 port map (ck, cl, sub, cm);
+		mux7: mux8x8 port map (ca, cm, ci, cj, cn, co, cp, cr, sel7, ct);
+		TEMP:	register8 port map (exe, ct, cu);
+		
+		bout <= ce;
+		diag_a <= cu;
+		diag_b <= cb;
+
+
+ end bx;
